@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gate Pass Management System (GPMS)</title>
+  
+  <!-- Google Fonts: Inter, Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Modular CSS Stylesheets -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen overflow-x-hidden selection:bg-blue-500 selection:text-white">
+
+  <!-- ==========================================================================
+       TOP APP HEADER & ROLE SWITCHER (PERSISTENT NAVBAR)
+       ========================================================================== -->
+  <header class="sticky top-0 z-40 w-full bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-lg no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Left: Brand Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('PG-03')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 ring-1 ring-white/20">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-display font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">GPMS</span>
+                <span class="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-500/20 text-blue-400 rounded border border-blue-500/30">v1.0</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Gate Pass Management System</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Quick Search -->
+        <div class="hidden md:flex items-center space-x-3 flex-1 max-w-md mx-6">
+          <div class="relative w-full">
+            <input type="text" id="globalSearchInput" placeholder="Search GP Serial, Client, or Job Card..." 
+                   class="w-full pl-9 pr-12 py-1.5 bg-slate-950/70 border border-slate-800 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono-code">
+            <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <span class="absolute right-2.5 top-2 px-1.5 py-0.5 text-[10px] font-mono text-slate-500 bg-slate-900 rounded border border-slate-800">⌘K</span>
+          </div>
+        </div>
+
+        <!-- Right: Role Switcher & Notifications -->
+        <div class="flex items-center space-x-3">
+          
+          <!-- Screen Quick Selector Dropdown -->
+          <div class="relative hidden sm:block">
+            <select id="pageSelectDropdown" onchange="navigateTo(this.value)" class="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 font-mono-code">
+              <optgroup label="Shared Pages">
+                <option value="PG-01">PG-01 — Login</option>
+                <option value="PG-02">PG-02 — Reset Password</option>
+                <option value="PG-03" selected>PG-03 — Dashboard</option>
+                <option value="PG-04">PG-04 — Gate Pass Detail</option>
+                <option value="PG-05">PG-05 — Search / List</option>
+                <option value="PG-06">PG-06 — Notifications</option>
+                <option value="PG-07">PG-07 — Account Settings</option>
+              </optgroup>
+              <optgroup label="Workflow Modules">
+                <option value="PG-08">PG-08 — New Gate Pass (Mod 1)</option>
+                <option value="PG-09">PG-09 — Payment Queue (Mod 2)</option>
+                <option value="PG-10">PG-10 — Pre-Release Queue (Mod 3)</option>
+                <option value="PG-11">PG-11 — Client Sign (Mod 4)</option>
+                <option value="PG-12">PG-12 — Raise Dispute (Mod 4)</option>
+                <option value="PG-13">PG-13 — My Approvals (Mod 5)</option>
+                <option value="PG-14">PG-14 — Gate Scan (Mod 6)</option>
+                <option value="PG-15">PG-15 — Exit Clearance (Mod 6)</option>
+                <option value="PG-16">PG-16 — Records Archive (Mod 7)</option>
+                <option value="PG-17">PG-17 — Printable Pass (Mod 7)</option>
+              </optgroup>
+              <optgroup label="Administration">
+                <option value="PG-18">PG-18 — User Management</option>
+                <option value="PG-19">PG-19 — Roles & Permissions</option>
+                <option value="PG-20">PG-20 — System Configuration</option>
+                <option value="PG-21">PG-21 — Audit Log Viewer</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- Role Selector Pill -->
+          <div class="relative">
+            <button id="roleDropdownBtn" onclick="toggleRoleMenu()" class="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/60 text-slate-200 text-xs px-3 py-1.5 rounded-lg transition-all shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="font-medium text-slate-400 hidden lg:inline">Role:</span>
+              <span id="currentRoleLabel" class="font-semibold text-white">Front Desk</span>
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            
+            <!-- Role Dropdown Menu -->
+            <div id="roleDropdownMenu" class="hidden absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-2 divide-y divide-slate-800/60 animate-pop-in">
+              <div class="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Switch Active User Role</div>
+              <div class="py-1">
+                <button onclick="switchRole('frontdesk')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-blue-600/20 hover:text-blue-400 flex items-center justify-between group">
+                  <span>Front Desk Officer</span>
+                  <span class="text-[10px] text-slate-500 group-hover:text-blue-400">Mod 1</span>
+                </button>
+                <button onclick="switchRole('accounts')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-blue-600/20 hover:text-blue-400 flex items-center justify-between group">
+                  <span>Accounts Officer</span>
+                  <span class="text-[10px] text-slate-500 group-hover:text-blue-400">Mod 2 & 5</span>
+                </button>
+                <button onclick="switchRole('workshop')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-blue-600/20 hover:text-blue-400 flex items-center justify-between group">
+                  <span>Workshop / Lab Manager</span>
+                  <span class="text-[10px] text-slate-500 group-hover:text-blue-400">Mod 3 & 5</span>
+                </button>
+                <button onclick="switchRole('coordinator')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-blue-600/20 hover:text-blue-400 flex items-center justify-between group">
+                  <span>Consultancy Coordinator</span>
+                  <span class="text-[10px] text-slate-500 group-hover:text-blue-400">Mod 5</span>
+                </button>
+                <button onclick="switchRole('client')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-blue-600/20 hover:text-blue-400 flex items-center justify-between group">
+                  <span>Client (Kiosk View)</span>
+                  <span class="text-[10px] text-slate-500 group-hover:text-blue-400">Mod 4</span>
+                </button>
+                <button onclick="switchRole('security')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-blue-600/20 hover:text-blue-400 flex items-center justify-between group">
+                  <span>Security Personnel</span>
+                  <span class="text-[10px] text-slate-500 group-hover:text-blue-400">Mod 6</span>
+                </button>
+                <button onclick="switchRole('records')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-blue-600/20 hover:text-blue-400 flex items-center justify-between group">
+                  <span>Records Officer</span>
+                  <span class="text-[10px] text-slate-500 group-hover:text-blue-400">Mod 7</span>
+                </button>
+                <button onclick="switchRole('admin')" class="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-blue-600/20 hover:text-blue-400 flex items-center justify-between group">
+                  <span>System Administrator</span>
+                  <span class="text-[10px] text-slate-500 group-hover:text-blue-400">Admin</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notification Center Link -->
+          <button onclick="navigateTo('PG-06')" class="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Notifications Center (PG-06)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span id="unreadNotifBadge" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-slate-900"></span>
+          </button>
+
+          <!-- System Status Bar -->
+          <div class="hidden xl:flex items-center space-x-2 pl-2 border-l border-slate-800 text-[11px] text-slate-400 font-mono-code" title="NFR-3 Availability & Sync Status">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Online</span>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN WRAPPER & SIDEBAR NAVIGATION
+       ========================================================================== -->
+  <div class="flex-1 flex w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
+
+    <!-- Sidebar Navigation Shell -->
+    <aside id="mainSidebar" class="w-64 flex-shrink-0 hidden lg:block no-print">
+      <div class="sticky top-22 space-y-6">
+        
+        <!-- Navigation Section -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 space-y-1 backdrop-blur-md shadow-xl">
+          <div class="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono-code">Main Navigation</div>
+          
+          <button onclick="navigateTo('PG-03')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group active-nav" data-page="PG-03">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Dashboard</span>
+            <span class="ml-auto text-[10px] text-slate-500 font-mono">PG-03</span>
+          </button>
+
+          <button onclick="navigateTo('PG-08')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-08">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>New Gate Pass</span>
+            <span class="ml-auto text-[10px] text-slate-500 font-mono">PG-08</span>
+          </button>
+
+          <button onclick="navigateTo('PG-05')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-05">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <span>Search & List</span>
+            <span class="ml-auto text-[10px] text-slate-500 font-mono">PG-05</span>
+          </button>
+          
+          <div class="pt-4 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono-code">Work Queues</div>
+
+          <button onclick="navigateTo('PG-09')" class="nav-item-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-09">
+            <div class="flex items-center space-x-3">
+              <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              <span>Payment Queue</span>
+            </div>
+            <span id="sidebarPaymentBadge" class="px-2 py-0.5 text-[11px] font-semibold bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/30">2</span>
+          </button>
+
+          <button onclick="navigateTo('PG-10')" class="nav-item-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-10">
+            <div class="flex items-center space-x-3">
+              <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              <span>Pre-Release Queue</span>
+            </div>
+            <span id="sidebarPreReleaseBadge" class="px-2 py-0.5 text-[11px] font-semibold bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30">1</span>
+          </button>
+
+          <button onclick="navigateTo('PG-13')" class="nav-item-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-13">
+            <div class="flex items-center space-x-3">
+              <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+              <span>My Approvals</span>
+            </div>
+            <span id="sidebarApprovalsBadge" class="px-2 py-0.5 text-[11px] font-semibold bg-indigo-500/20 text-indigo-400 rounded-full border border-indigo-500/30">3</span>
+          </button>
+
+          <div class="pt-4 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono-code">Specialized Roles</div>
+
+          <button onclick="navigateTo('PG-11')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-11">
+            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            <span>Client Kiosk Sign</span>
+            <span class="ml-auto text-[10px] text-slate-500 font-mono">PG-11</span>
+          </button>
+
+          <button onclick="navigateTo('PG-14')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-14">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            <span>Security Gate Scan</span>
+            <span class="ml-auto text-[10px] text-slate-500 font-mono">PG-14</span>
+          </button>
+
+          <button onclick="navigateTo('PG-16')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-16">
+            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20"/></svg>
+            <span>Records Archive</span>
+            <span class="ml-auto text-[10px] text-slate-500 font-mono">PG-16</span>
+          </button>
+
+          <div class="pt-4 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono-code">Administration</div>
+
+          <button onclick="navigateTo('PG-18')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-18">
+            <svg class="w-4 h-4 text-slate-500 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            <span>User Management</span>
+          </button>
+
+          <button onclick="navigateTo('PG-19')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-19">
+            <svg class="w-4 h-4 text-slate-500 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+            <span>Roles & Permissions</span>
+          </button>
+
+          <button onclick="navigateTo('PG-20')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-20">
+            <svg class="w-4 h-4 text-slate-500 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+            <span>System Config</span>
+          </button>
+
+          <button onclick="navigateTo('PG-21')" class="nav-item-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-800/80 hover:text-white transition-all group" data-page="PG-21">
+            <svg class="w-4 h-4 text-slate-500 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Audit Log Viewer</span>
+          </button>
+
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==========================================================================
+         DYNAMIC SCREEN CONTAINER (PG-01 THROUGH PG-21)
+         ========================================================================== -->
+    <main class="flex-1 w-full min-w-0">
+      
+      <!-- Current Page Breadcrumb & Quick Actions Header -->
+      <div id="pageHeaderBar" class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800/80 no-print">
+        <div>
+          <div class="flex items-center space-x-2 text-xs text-slate-400 font-mono-code mb-1">
+            <span id="pageIdBadge" class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded border border-blue-500/20 font-semibold">PG-03</span>
+            <span>•</span>
+            <span id="pageGroupLabel">Shared Pages</span>
+          </div>
+          <h1 id="pageTitle" class="text-2xl font-display font-bold text-white tracking-tight">Dashboard (Home)</h1>
+          <p id="pageSubtitle" class="text-xs text-slate-400 mt-0.5">Single landing page summarizing what needs your attention right now.</p>
+        </div>
+
+        <div id="pageHeaderActions" class="flex items-center space-x-3">
+          <button onclick="navigateTo('PG-08')" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs px-3.5 py-2 rounded-xl shadow-lg shadow-blue-600/20 flex items-center space-x-2 transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Create New Gate Pass</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW PANELS CONTAINER -->
+      <div id="viewContainer" class="relative">
+        
+        <!-- PG-01: Login -->
+        <div id="view-PG-01" class="page-view hidden animate-fade-in">
+          <div class="max-w-md mx-auto my-12 bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+            <div class="text-center space-y-2">
+              <div class="w-12 h-12 rounded-2xl bg-blue-600 mx-auto flex items-center justify-center text-white shadow-lg shadow-blue-600/30 mb-4">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </div>
+              <h2 class="text-2xl font-display font-bold text-white">Sign In to GPMS</h2>
+              <p class="text-xs text-slate-400">Gate Pass Management System Authorization</p>
+            </div>
+            
+            <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Username or Email</label>
+                <input type="text" id="loginUsername" required value="frontdesk@institution.edu" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold text-slate-300">Password</label>
+                  <a href="#" onclick="navigateTo('PG-02')" class="text-xs text-blue-400 hover:underline">Forgot password?</a>
+                </div>
+                <input type="password" id="loginPassword" required value="••••••••" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+              </div>
+              
+              <div id="loginErrorMessage" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl">
+                Invalid credentials. Please try again.
+              </div>
+
+              <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-600/30 transition-all">
+                Log In
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- PG-02: Forgot Password -->
+        <div id="view-PG-02" class="page-view hidden animate-fade-in">
+          <div class="max-w-md mx-auto my-12 bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+            <div class="text-center space-y-2">
+              <h2 class="text-xl font-display font-bold text-white">Reset Account Password</h2>
+              <p class="text-xs text-slate-400">Self-service password recovery per SRS NFR-2</p>
+            </div>
+            <form onsubmit="handleResetPasswordSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Work Email Address</label>
+                <input type="email" required placeholder="user@institution.edu" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+              </div>
+              <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm rounded-xl">
+                Send Reset Instructions
+              </button>
+              <div class="text-center pt-2">
+                <button type="button" onclick="navigateTo('PG-01')" class="text-xs text-slate-400 hover:text-white">← Back to Login</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- PG-03: Dashboard -->
+        <div id="view-PG-03" class="page-view animate-fade-in space-y-6">
+          
+          <!-- Summary Cards Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md hover:border-slate-700 transition-all group">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono-code">Awaiting Payment</span>
+                <div class="p-2 bg-amber-500/10 rounded-xl text-amber-400 group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+              </div>
+              <div class="mt-4 flex items-baseline justify-between">
+                <span id="dashStatPayment" class="text-3xl font-display font-bold text-white font-mono-code">2</span>
+                <button onclick="navigateTo('PG-09')" class="text-xs text-blue-400 hover:underline">View Queue →</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md hover:border-slate-700 transition-all group">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono-code">Pre-Release Check</span>
+                <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400 group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                </div>
+              </div>
+              <div class="mt-4 flex items-baseline justify-between">
+                <span id="dashStatPreRelease" class="text-3xl font-display font-bold text-white font-mono-code">1</span>
+                <button onclick="navigateTo('PG-10')" class="text-xs text-blue-400 hover:underline">View Queue →</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md hover:border-slate-700 transition-all group">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono-code">Pending Approvals</span>
+                <div class="p-2 bg-indigo-500/10 rounded-xl text-indigo-400 group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                </div>
+              </div>
+              <div class="mt-4 flex items-baseline justify-between">
+                <span id="dashStatApprovals" class="text-3xl font-display font-bold text-white font-mono-code">3</span>
+                <button onclick="navigateTo('PG-13')" class="text-xs text-blue-400 hover:underline">Review →</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md hover:border-slate-700 transition-all group">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono-code">Ready for Exit</span>
+                <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400 group-hover:scale-110 transition-transform">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+              </div>
+              <div class="mt-4 flex items-baseline justify-between">
+                <span id="dashStatReadyExit" class="text-3xl font-display font-bold text-white font-mono-code">2</span>
+                <button onclick="navigateTo('PG-14')" class="text-xs text-emerald-400 hover:underline">Gate Terminal →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Content Split: Recent Passes Table + Activity Audit Stream -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Table of Active Gate Passes -->
+            <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-display font-bold text-white flex items-center space-x-2">
+                  <span>Active Gate Passes</span>
+                  <span class="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-400 rounded-full font-mono">Live</span>
+                </h3>
+                <button onclick="navigateTo('PG-05')" class="text-xs text-blue-400 hover:underline">View All →</button>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                  <thead class="bg-slate-950 text-slate-400 font-mono-code uppercase text-[10px] tracking-wider border-b border-slate-800">
+                    <tr>
+                      <th class="py-3 px-3">Serial No.</th>
+                      <th class="py-3 px-3">Client Name</th>
+                      <th class="py-3 px-3">Job Card</th>
+                      <th class="py-3 px-3">Status</th>
+                      <th class="py-3 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashTableBody" class="divide-y divide-slate-800/60">
+                    <!-- Populated dynamically by app.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+              <h3 class="text-sm font-display font-bold text-white flex items-center justify-between">
+                <span>Recent System Events</span>
+                <button onclick="navigateTo('PG-21')" class="text-[11px] text-slate-400 hover:text-white">Audit Log →</button>
+              </h3>
+              <div id="dashActivityStream" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                <!-- Activity timeline items populated by JS -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- PG-04: Gate Pass Detail View -->
+        <div id="view-PG-04" class="page-view hidden animate-fade-in space-y-6">
+          
+          <!-- Detail Header & Contextual Toolbar -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+              <div>
+                <div class="flex items-center space-x-3">
+                  <h2 id="detailSerialNo" class="text-2xl font-mono-code font-bold text-white">GP-2026-0891</h2>
+                  <span id="detailStatusBadge" class="px-3 py-1 rounded-full text-xs font-semibold badge-pending">Pending Payment Verification</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">Issued: <span id="detailDateIssued" class="font-mono text-slate-300">Sep 4, 2026</span> • Department: <span id="detailDept" class="text-slate-300">Precision Engineering Lab</span></p>
+              </div>
+
+              <!-- Contextual Action Buttons based on Role & Status -->
+              <div id="detailActionToolbar" class="flex flex-wrap items-center gap-2">
+                <!-- Buttons injected by JS -->
+              </div>
+            </div>
+
+            <!-- Data Dictionary Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+              <div class="space-y-1">
+                <span class="text-slate-500 uppercase font-mono-code text-[10px]">Client Information</span>
+                <p id="detailClientName" class="font-semibold text-slate-200 text-sm">Apex Robotics Ltd.</p>
+                <p id="detailClientContact" class="text-slate-400">contact@apexrobotics.com • +254 712 345 678</p>
+              </div>
+
+              <div class="space-y-1">
+                <span class="text-slate-500 uppercase font-mono-code text-[10px]">Job Card / Work Order</span>
+                <p id="detailJobCard" class="font-mono-code font-semibold text-blue-400 text-sm">WO-9942-B</p>
+                <p id="detailPaymentRef" class="text-slate-400">Receipt Ref: <span class="font-mono text-slate-300">REC-77391</span></p>
+              </div>
+
+              <div class="space-y-1">
+                <span class="text-slate-500 uppercase font-mono-code text-[10px]">Release / Gate Clearance</span>
+                <p id="detailReleaseTime" class="text-slate-300 font-mono">Not Released Yet</p>
+                <p id="detailReceivingClient" class="text-slate-400">Receiving Client: <span class="text-slate-300">Unsigned</span></p>
+              </div>
+            </div>
+
+            <!-- Line Items Table -->
+            <div class="space-y-2 pt-2">
+              <h4 class="text-xs font-semibold text-slate-400 uppercase font-mono-code">Item Descriptions & Quantities (FR-1.6)</h4>
+              <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                <table class="w-full text-left text-xs text-slate-300">
+                  <thead class="bg-slate-900 font-mono-code text-[10px] text-slate-500 uppercase">
+                    <tr>
+                      <th class="py-2.5 px-4">#</th>
+                      <th class="py-2.5 px-4">Item Description</th>
+                      <th class="py-2.5 px-4 text-right">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody id="detailItemsTbody" class="divide-y divide-slate-800/50">
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 3 Approvals Status Grid (FR-5.1) -->
+            <div class="space-y-3 pt-2">
+              <h4 class="text-xs font-semibold text-slate-400 uppercase font-mono-code">Module 5 — Three Required Approvals (FR-5.1)</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div id="approvalCard-workshop" class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-300">1. Workshop / Lab Manager</span>
+                    <span id="appBadge-workshop" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">Pending</span>
+                  </div>
+                  <p id="appText-workshop" class="text-[11px] text-slate-500 italic">Awaiting verification</p>
+                </div>
+
+                <div id="approvalCard-coordinator" class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-300">2. Consultancy Coordinator</span>
+                    <span id="appBadge-coordinator" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">Pending</span>
+                  </div>
+                  <p id="appText-coordinator" class="text-[11px] text-slate-500 italic">Awaiting verification</p>
+                </div>
+
+                <div id="approvalCard-accounts" class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-300">3. Accounts Officer</span>
+                    <span id="appBadge-accounts" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">Pending</span>
+                  </div>
+                  <p id="appText-accounts" class="text-[11px] text-slate-500 italic">Awaiting verification</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Full Audit Trail / Timeline (FR-7.5) -->
+            <div class="space-y-3 pt-4 border-t border-slate-800">
+              <h4 class="text-xs font-semibold text-slate-400 uppercase font-mono-code">Audit Trail & Stage Timeline (FR-7.5)</h4>
+              <div id="detailTimelineContainer" class="space-y-3 pl-4 border-l-2 border-slate-800">
+                <!-- Timeline items injected by JS -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- PG-05: Gate Pass Search / List -->
+        <div id="view-PG-05" class="page-view hidden animate-fade-in space-y-4">
+          
+          <!-- Filter Bar -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              <input type="text" id="listFilterSearch" oninput="filterPassList()" placeholder="Filter by Client or Serial No..." class="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 w-full sm:w-64 focus:outline-none focus:border-blue-500">
+              
+              <select id="listFilterStatus" onchange="filterPassList()" class="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none font-mono">
+                <option value="ALL">All Statuses</option>
+                <option value="Pending Payment Verification">Pending Payment Verification</option>
+                <option value="Payment Verified">Payment Verified</option>
+                <option value="Pre-Release Verified">Pre-Release Verified</option>
+                <option value="Client Acknowledged">Client Acknowledged</option>
+                <option value="Approved – Ready for Exit">Approved – Ready for Exit</option>
+                <option value="Released">Released</option>
+                <option value="On Hold">On Hold / Disputed</option>
+              </select>
+            </div>
+
+            <button onclick="exportPassesCSV()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl flex items-center space-x-2 transition-colors">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Export CSV (Module 7)</span>
+            </button>
+          </div>
+
+          <!-- List Table -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 font-mono-code text-[10px] text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th class="py-3 px-4">Serial Number</th>
+                    <th class="py-3 px-4">Date Issued</th>
+                    <th class="py-3 px-4">Client Name</th>
+                    <th class="py-3 px-4">Job Card No.</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="listTableBody" class="divide-y divide-slate-800/60">
+                  <!-- JS dynamically populates -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- PG-06: Notifications Center -->
+        <div id="view-PG-06" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+              <h3 class="text-base font-display font-bold text-white">Notifications & Alert Center</h3>
+              <button onclick="markAllNotificationsRead()" class="text-xs text-blue-400 hover:underline">Mark all as read</button>
+            </div>
+            <div id="notifListContainer" class="space-y-3">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-07: My Profile / Account Settings -->
+        <div id="view-PG-07" class="page-view hidden animate-fade-in">
+          <div class="max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+            <h3 class="text-lg font-display font-bold text-white">Account & Profile Settings</h3>
+            <form onsubmit="handleProfileUpdate(event)" class="space-y-4 text-xs">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-medium text-slate-300 mb-1">Full Name</label>
+                  <input type="text" id="profName" value="Front Desk Officer" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200">
+                </div>
+                <div>
+                  <label class="block font-medium text-slate-300 mb-1">Email Address</label>
+                  <input type="email" id="profEmail" value="frontdesk@institution.edu" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200">
+                </div>
+              </div>
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Assigned Department</label>
+                <input type="text" disabled value="Front Office / Intake Desk" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 text-slate-500 rounded-xl">
+              </div>
+              <div class="pt-4 border-t border-slate-800">
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- PG-08: New Gate Pass Form (Module 1) -->
+        <div id="view-PG-08" class="page-view hidden animate-fade-in">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 max-w-4xl">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div>
+                <h3 class="text-lg font-display font-bold text-white">Create New Gate Pass (Module 1)</h3>
+                <p class="text-xs text-slate-400">Capture initial client, job card, and item details per SRS §3.1</p>
+              </div>
+              <span id="newAutoSerialNo" class="px-3 py-1 bg-slate-950 text-blue-400 font-mono-code font-bold rounded-lg border border-slate-800 text-xs">
+                Serial No: GP-2026-AUTO
+              </span>
+            </div>
+
+            <form onsubmit="handleCreateGatePass(event)" class="space-y-6 text-xs">
+              
+              <!-- Form Section 1: Client & Job Info -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-medium text-slate-300 mb-1">Client Name <span class="text-rose-400">*</span></label>
+                  <input type="text" id="newClientName" required placeholder="e.g. Acme Robotics Ltd." class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                  <label class="block font-medium text-slate-300 mb-1">Client Contact Details <span class="text-rose-400">*</span></label>
+                  <input type="text" id="newClientContact" required placeholder="Phone / Email address" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                  <label class="block font-medium text-slate-300 mb-1">Job Card / Work Order No. <span class="text-rose-400">*</span></label>
+                  <input type="text" id="newJobCardNo" required placeholder="e.g. WO-9988-X" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 font-mono-code focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                  <label class="block font-medium text-slate-300 mb-1">Payment Receipt Number <span class="text-rose-400">*</span></label>
+                  <input type="text" id="newPaymentReceiptNo" required placeholder="e.g. REC-88412" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 font-mono-code focus:outline-none focus:border-blue-500">
+                </div>
+              </div>
+
+              <!-- Form Section 2: Repeatable Items Table -->
+              <div class="space-y-3 pt-4 border-t border-slate-800">
+                <div class="flex items-center justify-between">
+                  <label class="font-semibold text-slate-300 uppercase font-mono-code text-[11px]">Item Descriptions & Quantities (FR-1.6)</label>
+                  <button type="button" onclick="addNewItemRow()" class="text-xs text-blue-400 hover:underline flex items-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    <span>Add Item Line</span>
+                  </button>
+                </div>
+
+                <div class="space-y-2" id="newItemRowsContainer">
+                  <div class="flex items-center gap-3 item-line-row">
+                    <input type="text" required placeholder="Item description (e.g. CNC Milled Aluminum Housing)" class="item-desc flex-1 px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200">
+                    <input type="number" min="1" value="1" required class="item-qty w-24 px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 font-mono text-center">
+                    <button type="button" onclick="removeItemRow(this)" class="p-2 text-slate-500 hover:text-rose-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="flex items-center justify-end space-x-3 pt-6 border-t border-slate-800">
+                <button type="button" onclick="navigateTo('PG-03')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium">Cancel</button>
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium shadow-lg shadow-blue-600/30">Submit Gate Pass (FR-1.11)</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- PG-09: Payment Verification Queue (Module 2) -->
+        <div id="view-PG-09" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div>
+              <h3 class="text-base font-display font-bold text-white">Payment Verification Queue (Module 2)</h3>
+              <p class="text-xs text-slate-400">Accounts Officer queue for passes awaiting proof of full payment (FR-2.1 - FR-2.5)</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 font-mono-code text-[10px] text-slate-400 uppercase">
+                  <tr>
+                    <th class="py-3 px-4">Serial No.</th>
+                    <th class="py-3 px-4">Client</th>
+                    <th class="py-3 px-4">Job Card</th>
+                    <th class="py-3 px-4">Receipt Ref</th>
+                    <th class="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentQueueTbody" class="divide-y divide-slate-800/60">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-10: Pre-Release Verification Queue (Module 3) -->
+        <div id="view-PG-10" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div>
+              <h3 class="text-base font-display font-bold text-white">Pre-Release Checklist Queue (Module 3)</h3>
+              <p class="text-xs text-slate-400">Workshop/Laboratory Manager quality & specification verification (FR-3.1 - FR-3.4)</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 font-mono-code text-[10px] text-slate-400 uppercase">
+                  <tr>
+                    <th class="py-3 px-4">Serial No.</th>
+                    <th class="py-3 px-4">Client</th>
+                    <th class="py-3 px-4">Job Card</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="preReleaseQueueTbody" class="divide-y divide-slate-800/60">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-11: Client Inspection & Signature Capture (Module 4) -->
+        <div id="view-PG-11" class="page-view hidden animate-fade-in">
+          <div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl">
+            <div class="text-center space-y-1 border-b border-slate-800 pb-4">
+              <span class="px-2.5 py-0.5 bg-purple-500/10 text-purple-400 text-[11px] font-mono-code rounded font-semibold">Client Terminal Kiosk</span>
+              <h2 class="text-2xl font-display font-bold text-white pt-2">Client Item Inspection & Sign-off</h2>
+              <p class="text-xs text-slate-400">Please review your item(s) below and provide your digital signature to acknowledge physical receipt.</p>
+            </div>
+
+            <!-- Items Review Box -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
+              <div class="flex items-center justify-between text-xs text-slate-400 font-mono-code">
+                <span>Gate Pass Reference: <strong id="kioskSerialNo" class="text-white">GP-2026-0891</strong></span>
+                <span>Job Card: <strong id="kioskJobCard" class="text-blue-400">WO-9942-B</strong></span>
+              </div>
+              <div id="kioskItemsList" class="pt-2 text-sm text-slate-200 space-y-1 font-medium">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- Signature Pad Canvas (FR-4.2) -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <label class="font-semibold text-slate-300">Sign Below using Touchscreen or Mouse</label>
+                <button type="button" onclick="clearSignatureCanvas()" class="text-slate-400 hover:text-rose-400">Clear Canvas</button>
+              </div>
+              <canvas id="signatureCanvas" width="600" height="180" class="w-full signature-canvas rounded-2xl"></canvas>
+            </div>
+
+            <!-- Actions: Sign or Dispute -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+              <button onclick="openDisputeModal()" class="w-full sm:w-auto text-xs text-rose-400 hover:underline">I don't agree / Item has issue (Raise Dispute)</button>
+              <button onclick="submitClientSignature()" class="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-emerald-600/30">
+                Sign to Acknowledge Receipt
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-13: My Approvals (Module 5) -->
+        <div id="view-PG-13" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div>
+              <h3 class="text-base font-display font-bold text-white">Module 5 — Three-Stage Approvals Queue</h3>
+              <p class="text-xs text-slate-400">Requires three distinct, named approvals: Workshop Manager, Coordinator, & Accounts Officer (BR-4, FR-5.1)</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 font-mono-code text-[10px] text-slate-400 uppercase">
+                  <tr>
+                    <th class="py-3 px-4">Serial No.</th>
+                    <th class="py-3 px-4">Client</th>
+                    <th class="py-3 px-4">Approvals Recorded</th>
+                    <th class="py-3 px-4">Your Role Status</th>
+                    <th class="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="approvalsQueueTbody" class="divide-y divide-slate-800/60">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-14: Gate Lookup / QR Scan (Module 6) -->
+        <div id="view-PG-14" class="page-view hidden animate-fade-in">
+          <div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl">
+            <div class="text-center space-y-2">
+              <div class="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-mono-code border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Module 6 — Exit Gate Scanner Terminal</span>
+              </div>
+              <h2 class="text-2xl font-display font-bold text-white">Gate Pass Verification</h2>
+              <p class="text-xs text-slate-400">Scan QR Code or enter serial number at security point of exit</p>
+            </div>
+
+            <!-- Search Bar + Scanner Simulator -->
+            <div class="space-y-4">
+              <div class="flex gap-2">
+                <input type="text" id="gateScanInput" placeholder="Scan QR or Enter Serial (e.g. GP-2026-0891)..." class="flex-1 px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-mono-code text-white focus:border-emerald-500 focus:outline-none">
+                <button onclick="performGateLookup()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm shadow-lg shadow-emerald-600/30">
+                  Lookup
+                </button>
+              </div>
+
+              <!-- QR Scanner Simulation Box -->
+              <div onclick="simulateQRScan()" class="relative border-2 border-dashed border-slate-800 hover:border-emerald-500/50 rounded-2xl p-8 text-center cursor-pointer transition-colors bg-slate-950/50 overflow-hidden group">
+                <div class="scanner-beam"></div>
+                <svg class="w-12 h-12 text-slate-600 group-hover:text-emerald-400 mx-auto transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                <p class="text-xs font-medium text-slate-300 mt-2">Click to Simulate Hardware QR Camera Scan</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-15: Exit Clearance (Module 6) -->
+        <div id="view-PG-15" class="page-view hidden animate-fade-in">
+          <div id="exitClearanceCard" class="max-w-3xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6 shadow-2xl">
+            <!-- Clearance Status Banner injected by JS (Approved vs Alert) -->
+            <div id="exitStatusBanner"></div>
+
+            <div id="exitPassDetails" class="space-y-6">
+              <!-- Exit Clearance Details injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-16: Records Archive (Module 7) -->
+        <div id="view-PG-16" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-display font-bold text-white">Records Archive & Traceability (Module 7)</h3>
+                <p class="text-xs text-slate-400">Complete historical record retention and export (FR-7.1 - FR-7.5)</p>
+              </div>
+              <button onclick="exportPassesCSV()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl">Export Full Archive CSV</button>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 font-mono-code text-[10px] text-slate-400 uppercase">
+                  <tr>
+                    <th class="py-3 px-4">Serial No.</th>
+                    <th class="py-3 px-4">Issue Date</th>
+                    <th class="py-3 px-4">Client</th>
+                    <th class="py-3 px-4">Job Card</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4 text-right">View</th>
+                  </tr>
+                </thead>
+                <tbody id="archiveTableBody" class="divide-y divide-slate-800/60">
+                  <!-- JS dynamically populates -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-17: Printable Gate Pass (Module 7) -->
+        <div id="view-PG-17" class="page-view hidden animate-fade-in">
+          <div class="max-w-3xl mx-auto space-y-4">
+            <div class="flex items-center justify-between no-print bg-slate-900 p-4 rounded-2xl border border-slate-800">
+              <span class="text-xs font-mono text-slate-400">PG-17 — Printable Document Layout</span>
+              <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>Print Document / PDF</span>
+              </button>
+            </div>
+
+            <!-- Clean Printable Pass Container -->
+            <div id="printablePassContent" class="printable-document bg-white text-slate-900 p-8 rounded-2xl shadow-2xl space-y-6">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-18: User Management -->
+        <div id="view-PG-18" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-display font-bold text-white">System User Management (PG-18)</h3>
+              <button onclick="alert('Add User modal triggered')" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl">+ Add New Staff User</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 font-mono-code text-[10px] text-slate-400 uppercase">
+                  <tr>
+                    <th class="py-3 px-4">Name</th>
+                    <th class="py-3 px-4">Email</th>
+                    <th class="py-3 px-4">Assigned Role</th>
+                    <th class="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60">
+                  <tr>
+                    <td class="py-3 px-4 font-semibold text-white">Sarah Jenkins</td>
+                    <td class="py-3 px-4 font-mono text-slate-400">s.jenkins@institution.edu</td>
+                    <td class="py-3 px-4">Front Desk Officer</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[10px]">Active</span></td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-semibold text-white">Dr. Robert Chen</td>
+                    <td class="py-3 px-4 font-mono text-slate-400">r.chen@institution.edu</td>
+                    <td class="py-3 px-4">Workshop/Lab Manager</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[10px]">Active</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-19: Roles & Permissions -->
+        <div id="view-PG-19" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <h3 class="text-base font-display font-bold text-white">Role Permission Matrix (PG-19)</h3>
+            <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold text-slate-200">Segregation of Duties Override (FR-5.3)</span>
+                <input type="checkbox" id="segregationOverrideToggle" onchange="toggleSegregationOverride(this.checked)" class="w-4 h-4 text-blue-600 rounded bg-slate-900 border-slate-700">
+              </div>
+              <p class="text-[11px] text-slate-400">Allow single user to execute multiple approval roles for small staff teams.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PG-20: System Configuration -->
+        <div id="view-PG-20" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 max-w-xl">
+            <h3 class="text-base font-display font-bold text-white">Institution Configuration (PG-20)</h3>
+            <form onsubmit="event.preventDefault(); alert('Settings saved!');" class="space-y-4 text-xs">
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Module 5 Approval Stage Count</label>
+                <input type="number" value="3" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 font-mono">
+              </div>
+              <div>
+                <label class="block font-medium text-slate-300 mb-1">Archival Retention Period (Years)</label>
+                <input type="number" value="7" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 font-mono">
+              </div>
+              <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium">Save Configuration</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- PG-21: Audit Log Viewer -->
+        <div id="view-PG-21" class="page-view hidden animate-fade-in space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <h3 class="text-base font-display font-bold text-white">System Audit Log Viewer (PG-21)</h3>
+            <div id="fullAuditLogContainer" class="space-y-2 font-mono-code text-xs">
+              <!-- JS populates -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ==========================================================================
+       MODALS & TOAST CONTAINER
+       ========================================================================== -->
+  
+  <!-- Dispute Modal (PG-12) -->
+  <div id="disputeModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 animate-pop-in shadow-2xl">
+      <h3 class="text-lg font-display font-bold text-white">Raise Client Dispute (PG-12)</h3>
+      <p class="text-xs text-slate-400">Specify why sign-off is declined. This pauses gate pass progression (FR-4.3).</p>
+      
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Dispute Category</label>
+        <select id="disputeCategory" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 font-mono">
+          <option value="Item Damaged">Item Damaged / Scratched</option>
+          <option value="Wrong Specification">Wrong Specification / Spec Mismatch</option>
+          <option value="Quality Concern">Quality Concern</option>
+          <option value="Other">Other Reason</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Detailed Explanation</label>
+        <textarea id="disputeComment" rows="3" placeholder="Provide context for workshop manager..." class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button onclick="closeDisputeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl font-medium">Cancel</button>
+        <button onclick="submitDispute()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs rounded-xl font-semibold">Submit Dispute</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- Modular JavaScript Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/roles.js"></script>
+  <script src="js/canvas.js"></script>
+  <script src="js/scanner.js"></script>
+  <script src="js/components/dashboard.js"></script>
+  <script src="js/components/detail.js"></script>
+  <script src="js/components/kiosk.js"></script>
+  <script src="js/components/forms.js"></script>
+  <script src="js/components/queues.js"></script>
+  <script src="js/components/archive.js"></script>
+  <script src="js/components/admin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
